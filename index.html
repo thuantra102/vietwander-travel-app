@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>VietWander Explorer - Vietnam Travel Planner</title>
+    <style>
+          :root { --primary: #da251d; --secondary: #ffde00; --dark: #1f2937; --light: #f3f4f6; }
+          * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+          body { background: #f8fafc; color: #334155; line-height: 1.6; }
+          header { background: linear-gradient(135deg, var(--primary), #991b1b); color: white; padding: 2rem 1rem; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+          header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+          header p { color: var(--secondary); font-weight: 600; font-size: 1.1rem; }
+          nav { display: flex; justify-content: center; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+          nav button { padding: 1rem 1.5rem; border: none; background: none; font-size: 1rem; font-weight: 600; cursor: pointer; color: #64748b; transition: 0.3s; }
+          nav button.active, nav button:hover { color: var(--primary); border-bottom: 3px solid var(--primary); }
+          .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+          .tab-content { display: none; }
+          .tab-content.active { display: block; }
+          .card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 1.5rem; border: 1px solid #e2e8f0; }
+          .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+          .explorer-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+          @media (max-width: 768px) { .explorer-layout { grid-template-columns: 1fr; } }
+          .map-container { background: #e0f2fe; border-radius: 12px; padding: 1rem; text-align: center; }
+          .city-node { cursor: pointer; transition: transform 0.2s; }
+          .city-node:hover { transform: scale(1.2); }
+          .city-node circle { fill: var(--primary); stroke: #fff; stroke-width: 2; }
+          .city-node text { font-size: 11px; font-weight: bold; fill: #0f172a; }
+          .transit-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; margin: 0.2rem; font-weight: 600; }
+          .form-group { margin-bottom: 1rem; }
+          .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+          .form-group select, .form-group input { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
+          .btn { background: var(--primary); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+          .btn:hover { background: #b91c1c; }
+          .btn-danger { background: #ef4444; }
+          .btn-danger:hover { background: #dc2626; }
+          .itinerary-list { list-style: none; }
+          .itinerary-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; border-bottom: 1px solid #f1f5f9; background: #fafafa; margin-bottom: 0.5rem; border-radius: 6px; }
+          .budget-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+          .stat-box { background: #f8fafc; border-left: 4px solid var(--primary); padding: 1rem; border-radius: 6px; }
+          .stat-box h4 { font-size: 0.85rem; color: #64748b; text-transform: uppercase; }
+          .stat-box p { font-size: 1.5rem; font-weight: bold; color: #0f172a; }
+          .packing-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0; border-bottom: 1px solid #f1f5f9; }
+          .packing-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+          .packing-item.completed label { text-decoration: line-through; color: #94a3b8; }
+        </style>
+  </head>
+  <body>
+      <header>
+            <h1>VietWander Explorer</h1>
+          <p>Interactive Vietnam Backpacking & Travel Planner</p>
+      </header>
+    <nav>
+          <button class="tab-btn active" onclick="switchTab('explorer')">Destination Explorer</button>button>
+          <button class="tab-btn" onclick="switchTab('itinerary')">Itinerary Builder</button>button>
+          <button class="tab-btn" onclick="switchTab('budget')">Budget & Expenses</button>button>
+          <button class="tab-btn" onclick="switchTab('packing')">Packing Checklist</button>button>
+    </nav>
+      <div class="container">
+            <div id="explorer" class="tab-content active">
+                    <div class="explorer-layout">
+                              <div class="card map-container">
+                                          <h3>Click a Destination on Map</h3>
+                                          <svg viewBox="0 0 300 600" style="max-width: 100%; height: auto;">
+                                                        <path d="M 120,40 Q 140,80 130,120 T 170,220 T 180,320 T 160,420 T 100,520" fill="none" stroke="#cbd5e1" stroke-width="4" stroke-dasharray="6,6"/>
+                                                        <g class="city-node" onclick="selectCity('Sa Pa')"><circle cx="100" cy="50" r="12"/><text x="120" y="54">Sa Pa</text>text></g>g>
+                                                        <g class="city-node" onclick="selectCity('Hanoi')"><circle cx="140" cy="90" r="12"/><text x="160" y="94">Hanoi</text>text></g>g>
+                                                        <g class="city-node" onclick="selectCity('Ninh Binh')"><circle cx="150" cy="140" r="12"/><text x="170" y="144">Ninh Binh</text>text></g>g>
+                                                        <g class="city-node" onclick="selectCity('Da Nang')"><circle cx="190" cy="240" r="12"/><text x="210" y="244">Da Nang</text>text></g>g>
+                                                        <g class="city-node" onclick="selectCity('Hoi An')"><circle cx="200" cy="270" r="12"/><text x="220" y="274">Hoi An</text>text></g>g>
+                                                        <g class="city-node" onclick="selectCity('Măng Đen')"><circle cx="170" cy="330" r="12"/><text x="190" y="334">Măng Đen</text>text></g>g>
+                                                        <g class="city-node" onclick="selectCity('Da Lat')"><circle cx="180" cy="400" r="12"/><text x="200" y="404">Da Lat</text>text></g>g>
+                                                        <g class="city-node" onclick="selectCity('Mui Ne')"><circle cx="190" cy="450" r="12"/><text x="210" y="454">Mui Ne</text>text></g>g>
+                                                        <g class="city-node" onclick="selectCity('Ho Chi Minh City')"><circle cx="120" cy="500" r="12"/><text x="140" y="504">Ho Chi Minh City</text>text></g>g>
+                                          </svg>svg>
+                              </div>div>
+                              <div class="card" id="city-details">
+                                          <h2 id="city-name">Select a destination</h2>
+                                          <p id="city-desc" style="margin-top: 0.5rem; color: #64748b;">Click on any city on the route map to explore details, daily budget estimates, and local transit options.</p>
+                                          <div id="city-info" style="display: none; margin-top: 1rem;">
+                                                        <p><strong>Estimated Daily Cost:</strong> <span id="city-cost"></span>span></p>
+                                                      <p style="margin-top: 0.8rem;"><strong>Local Transit Modes:</strong></p>
+                                                      <div id="city-transit" style="margin-top: 0.3rem;"></div>div>
+                                                      <button class="btn" style="margin-top: 1.5rem;" onclick="addCurrentCityToItinerary()">+ Add to Itinerary</button>button>
+                                          </div>div>
+                              </div>div>
+                    </div>div>
+            </div>div>
+          <div id="itinerary" class="tab-content">
+                <div class="card">
+                        <h2>Day-by-Day Itinerary Builder</h2>
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+                                  <div class="form-group" style="flex: 1; min-width: 150px;">
+                                              <label>Day / Date</label>
+                                              <input type="text" id="itin-day" placeholder="e.g. Day 1">
+                                  </div>div>
+                                  <div class="form-group" style="flex: 2; min-width: 200px;">
+                                              <label>Destination</label>
+                                              <select id="itin-city">
+                                                            <option value="Da Nang">Da Nang</option>option>
+                                                            <option value="Hoi An">Hoi An</option>option>
+                                                            <option value="Măng Đen">Măng Đen</option>option>
+                                                            <option value="Hanoi">Hanoi</option>option>
+                                                            <option value="Ninh Binh">Ninh Binh</option>option>
+                                                            <option value="Da Lat">Da Lat</option>option>
+                                                            <option value="Mui Ne">Mui Ne</option>option>
+                                                            <option value="Sa Pa">Sa Pa</option>option>
+                                                            <option value="Ho Chi Minh City">Ho Chi Minh City</option>option>
+                                              </select>select>
+                                  </div>div>
+                                  <div class="form-group" style="flex: 3; min-width: 250px;">
+                                              <label>Notes / Transit Plan</label>
+                                              <input type="text" id="itin-notes" placeholder="e.g. Vexere sleeper bus from Hanoi">
+                                  </div>div>
+                                  <div style="align-self: flex-end; margin-bottom: 1rem;">
+                                              <button class="btn" onclick="addItineraryStop()">Add Stop</button>button>
+                                  </div>div>
+                        </div>div>
+                </div>div>
+                <div class="card">
+                        <h3>Your Travel Route</h3>
+                        <ul id="itinerary-list" class="itinerary-list" style="margin-top: 1rem;"></ul>ul>
+                </div>div>
+          </div>div>
+          <div id="budget" class="tab-content">
+                <div class="card">
+                        <h2>VND / USD Budget Calculator</h2>
+                        <div class="budget-summary">
+                                  <div class="stat-box">
+                                              <h4>Total Expenses (VND)</h4>
+                                              <p id="total-vnd">0 VND</p>
+                                  </div>div>
+                                  <div class="stat-box">
+                                              <h4>Total Expenses (USD)</h4>
+                                              <p id="total-usd">$0.00</p>
+                                  </div>div>
+                                  <div class="stat-box">
+                                              <h4>Exchange Rate</h4>
+                                              <p>1 USD = 25,000 VND</p>
+                                  </div>div>
+                        </div>div>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                                  <div class="form-group" style="flex: 2; min-width: 180px;">
+                                              <label>Expense Name</label>
+                                              <input type="text" id="exp-name" placeholder="e.g. GrabBike ride / Hostel">
+                                  </div>div>
+                                  <div class="form-group" style="flex: 1; min-width: 120px;">
+                                              <label>Category</label>
+                                              <select id="exp-cat">
+                                                            <option value="Transit">Transit (GrabBike/Vexere/Flight/Waterbus)</option>option>
+                                                            <option value="Stay">Accommodation</option>option>
+                                                            <option value="Food">Food & Drinks</option>option>
+                                                            <option value="Activities">Activities & Tickets</option>option>
+                                                            <option value="Misc">Miscellaneous</option>option>
+                                              </select>select>
+                                  </div>div>
+                                  <div class="form-group" style="flex: 1; min-width: 120px;">
+                                              <label>Amount (VND)</label>
+                                              <input type="number" id="exp-amount" placeholder="e.g. 150000">
+                                  </div>div>
+                                  <div style="align-self: flex-end; margin-bottom: 1rem;">
+                                              <button class="btn" onclick="addExpense()">Add Expense</button>button>
+                                  </div>div>
+                        </div>div>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                                  <thead>
+                                                <tr style="border-bottom: 2px solid #cbd5e1; text-align: left;">
+                                                                <th style="padding: 0.5rem;">Expense</th>th>
+                                                                <th style="padding: 0.5rem;">Category</th>th>
+                                                                <th style="padding: 0.5rem;">VND</th>th>
+                                                                <th style="padding: 0.5rem;">USD</th>th>
+                                                                <th style="padding: 0.5rem;">Action</th>th>
+                                                </tr>tr>
+                                  </thead>
+                                    <tbody id="expense-list"></tbody>tbody>
+                        </table>table>
+                </div>div>
+          </div>div>
+            <div id="packing" class="tab-content">
+                    <div class="card">
+                              <h2>Backpacker Packing Checklist</h2>
+                              <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">Track your gear. Saved automatically to your browser (localStorage).</p>
+                              <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                                          <input type="text" id="new-pack-item" placeholder="Add custom item..." style="flex: 1; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px;">
+                                          <button class="btn" onclick="addPackingItem()">Add Item</button>button>
+                              </div>div>
+                              <div id="packing-container"></div>div>
+                    </div>div>
+            </div>div>
+      </div>div>
+      <script>
+            const citiesData = {
+                    "Da Nang": { cost: "600,000 VND ($24 USD)", transit: ["GrabBike", "Domestic Flights", "Vexere sleeper bus"], desc: "Coastal hub with Marble Mountains, Dragon Bridge, and pristine beaches." },
+                    "Hoi An": { cost: "500,000 VND ($20 USD)", transit: ["GrabBike", "Vexere sleeper bus"], desc: "Charming ancient town famous for lanterns, tailor shops, and local food." },
+                    "Măng Đen": { cost: "450,000 VND ($18 USD)", transit: ["Vexere sleeper bus", "GrabBike"], desc: "Serene pine forests and waterfalls in the Central Highlands." },
+                    "Hanoi": { cost: "650,000 VND ($26 USD)", transit: ["GrabBike", "Domestic Flights", "Vexere sleeper bus"], desc: "Historic capital city with bustling Old Quarter and legendary street food." },
+                    "Ninh Binh": { cost: "550,000 VND ($22 USD)", transit: ["GrabBike", "Vexere sleeper bus"], desc: "Ha Long Bay on land featuring dramatic limestone karsts and river boat rides." },
+                    "Da Lat": { cost: "550,000 VND ($22 USD)", transit: ["GrabBike", "Domestic Flights", "Vexere sleeper bus"], desc: "Cool mountain retreat with coffee plantations and french colonial vibes." },
+                    "Mui Ne": { cost: "500,000 VND ($20 USD)", transit: ["GrabBike", "Vexere sleeper bus"], desc: "Coastal town famous for red & white sand dunes and kite surfing." },
+                    "Sa Pa": { cost: "600,000 VND ($24 USD)", transit: ["GrabBike", "Vexere sleeper bus"], desc: "Mist-shrouded mountain town with rice terraces and Fansipan peak." },
+                    "Ho Chi Minh City": { cost: "700,000 VND ($28 USD)", transit: ["Saigon Waterbus", "GrabBike", "Domestic Flights", "Vexere sleeper bus"], desc: "Vibrant southern metropolis with rich history, markets, and river routes." }
+            };
+            let currentSelectedCity = null;
+            let itinerary = JSON.parse(localStorage.getItem('vietwander_itin')) || [];
+            let expenses = JSON.parse(localStorage.getItem('vietwander_exp')) || [];
+            let packingList = JSON.parse(localStorage.getItem('vietwander_pack')) || [
+              { text: "Passport & Visas", checked: false },
+              { text: "Universal Power Adapter", checked: false },
+              { text: "Light Rain Jacket / Poncho", checked: false },
+              { text: "Mosquito Repellent & Sunscreen", checked: false },
+              { text: "Quick-dry Towel & Swimwear", checked: false },
+              { text: "Sturdy Walking Shoes / Sandals", checked: false },
+              { text: "First Aid & Basic Medications", checked: false }
+                  ];
+            function switchTab(tabId) {
+                    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+                    document.getElementById(tabId).classList.add('active');
+                    event.currentTarget.classList.add('active');
+            }
+            function selectCity(name) {
+                    currentSelectedCity = name;
+                    const city = citiesData[name];
+                    if (!city) return;
+                    document.getElementById('city-name').innerText = name;
+                    document.getElementById('city-desc').innerText = city.desc;
+                    document.getElementById('city-cost').innerText = city.cost;
+                    const transitBox = document.getElementById('city-transit');
+                    transitBox.innerHTML = city.transit.map(t => `<span class="transit-badge">${t}</span>`).join('');
+                    document.getElementById('city-info').style.display = 'block';
+            }
+            function addCurrentCityToItinerary() {
+                    if (!currentSelectedCity) return;
+                    itinerary.push({ day: `Day ${itinerary.length + 1}`, city: currentSelectedCity, notes: `Explore ${currentSelectedCity}` });
+                    saveItinerary();
+                    renderItinerary();
+                    alert(`Added ${currentSelectedCity} to Itinerary!`);
+            }
+            function addItineraryStop() {
+                    const day = document.getElementById('itin-day').value || `Day ${itinerary.length + 1}`;
+                    const city = document.getElementById('itin-city').value;
+                    const notes = document.getElementById('itin-notes').value || '';
+                    itinerary.push({ day, city, notes });
+                    saveItinerary();
+                    renderItinerary();
+                    document.getElementById('itin-notes').value = '';
+            }
+            function removeItineraryStop(index) {
+                    itinerary.splice(index, 1);
+                    saveItinerary();
+                    renderItinerary();
+            }
+            function saveItinerary() { localStorage.setItem('vietwander_itin', JSON.stringify(itinerary)); }
+            function renderItinerary() {
+                    const list = document.getElementById('itinerary-list');
+                    if (itinerary.length === 0) {
+                              list.innerHTML = '<li style="color: #94a3b8;">No stops added yet. Use the form above or map explorer.</li>';
+                              return;
+                    }
+                    list.innerHTML = itinerary.map((item, idx) => `
+                            <li class="itinerary-item">
+                                      <div>
+                                                  <strong>${item.day}: ${item.city}</strong>
+                                                              <div style="font-size: 0.85rem; color: #64748b;">${item.notes}</div>
+                                                                        </div>
+                                                                                  <button class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="removeItineraryStop(${idx})">Remove</button>
+                                                                                          </li>
+                                                                                                `).join('');
+            }
+            function addExpense() {
+                    const name = document.getElementById('exp-name').value;
+                    const cat = document.getElementById('exp-cat').value;
+                    const amount = parseFloat(document.getElementById('exp-amount').value);
+                    if (!name || isNaN(amount)) return;
+                    expenses.push({ name, cat, amount });
+                    saveExpenses();
+                    renderExpenses();
+                    document.getElementById('exp-name').value = '';
+                    document.getElementById('exp-amount').value = '';
+            }
+            function removeExpense(idx) {
+                    expenses.splice(idx, 1);
+                    saveExpenses();
+                    renderExpenses();
+            }
+            function saveExpenses() { localStorage.setItem('vietwander_exp', JSON.stringify(expenses)); }
+            function renderExpenses() {
+                    const list = document.getElementById('expense-list');
+                    let totalVND = 0;
+                    list.innerHTML = expenses.map((item, idx) => {
+                              totalVND += item.amount;
+                              const usd = (item.amount / 25000).toFixed(2);
+                              return `
+                                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                                                    <td style="padding: 0.5rem;">${item.name}</td>
+                                                                <td style="padding: 0.5rem;"><span class="transit-badge">${item.cat}</span></td>
+                                                                            <td style="padding: 0.5rem;">${item.amount.toLocaleString()} VND</td>
+                                                                                        <td style="padding: 0.5rem;">$${usd}</td>
+                                                                                                    <td style="padding: 0.5rem;"><button class="btn btn-danger" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="removeExpense(${idx})">Delete</button></td>
+                                                                                                              </tr>
+                                                                                                                      `;
+                    }).join('');
+                    document.getElementById('total-vnd').innerText = totalVND.toLocaleString() + ' VND';
+                    document.getElementById('total-usd').innerText = '$' + (totalVND / 25000).toFixed(2);
+            }
+            function renderPacking() {
+                    const container = document.getElementById('packing-container');
+                    container.innerHTML = packingList.map((item, idx) => `
+                            <div class="packing-item ${item.checked ? 'completed' : ''}">
+                                      <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="togglePacking(${idx})">
+                                                <label style="flex: 1;">${item.text}</label>
+                                                          <button class="btn btn-danger" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="removePacking(${idx})">x</button>
+                                                                  </div>
+                                                                        `).join('');
+            }
+            function togglePacking(idx) {
+                    packingList[idx].checked = !packingList[idx].checked;
+                    savePacking();
+                    renderPacking();
+            }
+            function addPackingItem() {
+                    const val = document.getElementById('new-pack-item').value.trim();
+                    if (!val) return;
+                    packingList.push({ text: val, checked: false });
+                    savePacking();
+                    renderPacking();
+                    document.getElementById('new-pack-item').value = '';
+            }
+            function removePacking(idx) {
+                    packingList.splice(idx, 1);
+                    savePacking();
+                    renderPacking();
+            }
+            function savePacking() { localStorage.setItem('vietwander_pack', JSON.stringify(packingList)); }
+            renderItinerary();
+            renderExpenses();
+            renderPacking();
+            selectCity('Da Nang');
+      </script>
+  </body>
+</html>html>
+      </script>
+                                  </thead></p></label></label></strong></strong>
+    </nav></p></h1>
+      </header>
+  </body>
+    </style></title>
+  </head>
